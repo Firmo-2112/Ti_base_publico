@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitação de Serviço — Setor de TI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --primary-dim: rgba(0,212,255,0.12);
+            --primary-glow: rgba(0,212,255,0.35);
+            --bg-void: #020817;
+            --bg-base: #060d1f;
+            --bg-surface: #0a1628;
+            --bg-card: #0d1a30;
+            --bg-elevated: #0f1f38;
+            --text-bright: #e2f0ff;
+            --text-primary: #b8d4f0;
+            --text-secondary: #6b8cad;
+            --text-muted: #3d5a78;
+            --border: rgba(0,212,255,0.12);
+            --border-bright: rgba(0,212,255,0.35);
+            --success: #10b981;
+            --success-dim: rgba(16,185,129,0.12);
+            --danger: #f43f5e;
+            --danger-dim: rgba(244,63,94,0.12);
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
+            --glow-sm: 0 0 12px rgba(0,212,255,0.2);
+            --glow-md: 0 0 24px rgba(0,212,255,0.3);
+            --ease-out-expo: cubic-bezier(0.16,1,0.3,1);
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+        html { font-size:16px; scroll-behavior:smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-void);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Binary canvas */
+        #binaryCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+
+        /* Scanlines */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 640px;
+        }
+
+        /* Header / Brasão */
+        .portal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeDown 0.6s var(--ease-out-expo) both;
+        }
+
+        @keyframes fadeDown {
+            from { opacity:0; transform:translateY(-20px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        .portal-brasao {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 16px rgba(0,212,255,0.3));
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%,100% { filter: drop-shadow(0 0 8px rgba(0,212,255,0.2)); }
+            50%      { filter: drop-shadow(0 0 20px rgba(0,212,255,0.5)); }
+        }
+
+        .portal-header h1 {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-bright);
+            margin-bottom: 0.25rem;
+        }
+
+        .portal-header p {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        /* Card */
+        .portal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg), var(--glow-sm);
+            animation: fadeUp 0.6s var(--ease-out-expo) 0.1s both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(24px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        .portal-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: scanLine 3s ease-in-out infinite;
+        }
+
+        @keyframes scanLine {
+            0%,100% { transform:translateX(-100%); opacity:0; }
+            50%      { transform:translateX(100%);  opacity:1; }
+        }
+
+        .card-title {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title svg { width:18px; height:18px; }
+
+        /* SO Badge */
+        .so-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .so-badge-label {
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+        }
+
+        .so-badge-value {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+        }
+
+        /* Form */
+        .form-group { margin-bottom: 1.125rem; }
+
+        .form-group label {
+            display: block;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.7rem 0.875rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-bright);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            transition: all 240ms var(--ease-out-expo);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-dim), var(--glow-sm);
+            background: var(--bg-elevated);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder { color: var(--text-muted); }
+
+        .form-group textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+        /* Char counter */
+        .char-counter {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+
+        /* Submit */
+        .btn-submit {
+            width: 100%;
+            padding: 0.9rem;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: 'Oxanium', sans-serif;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 0 12px var(--primary-glow);
+            transition: all 240ms var(--ease-out-expo);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            background: #00eeff;
+            box-shadow: 0 0 24px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-submit:active { transform: scale(0.97); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-submit svg { width:20px; height:20px; }
+
+        /* Success state */
+        .success-screen {
+            display: none;
+            text-align: center;
+            padding: 2rem 1rem;
+            animation: fadeUp 0.5s var(--ease-out-expo) both;
+        }
+
+        .success-screen.visible { display: block; }
+
+        .success-icon {
+            width: 72px;
+            height: 72px;
+            background: var(--success-dim);
+            border: 2px solid var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: popIn 0.5s var(--ease-out-expo) 0.1s both;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0); opacity:0; }
+            to   { transform: scale(1); opacity:1; }
+        }
+
+        .success-icon svg { width:36px; height:36px; color: var(--success); }
+
+        .success-screen h2 {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 1.375rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-bright);
+            margin-bottom: 0.75rem;
+        }
+
+        .success-screen p {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .success-so {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 1rem 0;
+            display: block;
+            text-shadow: 0 0 16px var(--primary-glow);
+        }
+
+        .btn-nova {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            padding: 0.7rem 1.5rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: 'Oxanium', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 240ms var(--ease-out-expo);
+        }
+
+        .btn-nova:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-nova svg { width:16px; height:16px; }
+
+        /* Error */
+        .form-error {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: var(--danger-dim);
+            border: 1px solid rgba(244,63,94,0.3);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            font-size: 0.8125rem;
+            color: var(--danger);
+        }
+
+        .form-error.visible { display: flex; animation: shake 0.4s ease; }
+
+        @keyframes shake {
+            0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)}
+        }
+
+        .form-error svg { width:16px; height:16px; flex-shrink:0; }
+
+        /* Footer */
+        .portal-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+            animation: fadeUp 0.6s var(--ease-out-expo) 0.2s both;
+        }
+
+        @media (max-width: 480px) {
+            .portal-card { padding: 1.5rem 1.25rem; border-radius: var(--radius-lg); }
+            .form-row { grid-template-columns: 1fr; }
+            .portal-brasao { width: 72px; height: 72px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.1ms !important; }
+            #binaryCanvas { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="binaryCanvas"></canvas>
+
+    <div class="page-wrapper">
+        <!-- Cabeçalho -->
+        <div class="portal-header">
+            <img src="brasao.jpg" alt="Brasão" class="portal-brasao">
+            <h1>Setor de TI</h1>
+            <p>Portal de Solicitação de Serviço</p>
+        </div>
+
+        <!-- Card do formulário -->
+        <div class="portal-card">
+
+            <!-- Tela de formulário -->
+            <div id="formScreen">
+                <div class="card-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Nova Solicitação de Serviço
+                </div>
+
+                <!-- Número da S.O. -->
+                <div class="so-badge">
+                    <div>
+                        <div class="so-badge-label">Número da S.O.</div>
+                        <div class="so-badge-value" id="soNumero">Carregando...</div>
+                    </div>
+                </div>
+
+                <!-- Erro geral -->
+                <div class="form-error" id="formError">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    <span id="formErrorMsg">Erro ao enviar solicitação.</span>
+                </div>
+
+                <form id="solicitacaoForm">
+                    <div class="form-group">
+                        <label for="titulo">Título da Solicitação *</label>
+                        <input type="text" id="titulo" placeholder="Ex: Computador sem funcionar" maxlength="100" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clienteSetor">Cliente / Setor *</label>
+                            <input type="text" id="clienteSetor" placeholder="Ex: Secretaria de Educação" maxlength="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="datasolicitacao">Data da Solicitação</label>
+                            <input type="date" id="datasolicitacao">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descricao">Descrição do Serviço *</label>
+                        <textarea id="descricao" placeholder="Descreva detalhadamente o problema ou serviço que precisa ser realizado..." maxlength="1000" required></textarea>
+                        <div class="char-counter"><span id="descCount">0</span> / 1000 caracteres</div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="btnEnviar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                        Enviar Solicitação
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tela de sucesso -->
+            <div class="success-screen" id="successScreen">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <h2>Solicitação Enviada!</h2>
+                <p>Sua solicitação foi registrada com sucesso.</p>
+                <p>Guarde o número abaixo para acompanhamento:</p>
+                <span class="success-so" id="successSO"></span>
+                <p>O Setor de TI entrará em contato em breve.</p>
+                <button class="btn-nova" onclick="novaSolicitacao()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Nova Solicitação
+                </button>
+            </div>
+
+        </div>
+
+        <div class="portal-footer">
+            Setor de TI &mdash; Sistema de Gerenciamento &copy; 2026
+        </div>
+    </div>
+
+    <script>
+    // ============================================
+    // CONFIGURAÇÃO
+    // ============================================
+    const API_URL = 'https://tibase-production.up.railway.app';
+
+    // ============================================
+    // BINARY RAIN
+    // ============================================
+    (function() {
+        const canvas = document.getElementById('binaryCanvas');
+        const ctx = canvas.getContext('2d');
+        let cols, drops;
+        const FS = 13;
+
+        function resize() {
+            canvas.width  = window.innerWidth;
+            canvas.height = window.innerHeight;
+            cols  = Math.floor(canvas.width / FS);
+            drops = Array.from({ length: cols }, () => Math.random() * -80);
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(2,8,23,0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = FS + 'px monospace';
+            for (let i = 0; i < cols; i++) {
+                const y = drops[i] * FS;
+                ctx.fillStyle = '#00d4ff';
+                ctx.fillText(Math.random() > 0.5 ? '1' : '0', i * FS, y);
+                ctx.fillStyle = 'rgba(0,212,255,0.25)';
+                ctx.fillText(Math.random() > 0.5 ? '1' : '0', i * FS, y - FS);
+                if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i] += 0.35 + Math.random() * 0.25;
+            }
+            requestAnimationFrame(draw);
+        }
+
+        resize();
+        window.addEventListener('resize', resize);
+        draw();
+    })();
+
+    // ============================================
+    // GERAR NÚMERO S.O.
+    // ============================================
+    async function carregarProximoSO() {
+        try {
+            const res  = await fetch(API_URL + '/api/solicitacoes/proximo-numero');
+            const data = await res.json();
+            document.getElementById('soNumero').textContent = data.numero;
+        } catch(e) {
+            const ano = new Date().getFullYear();
+            document.getElementById('soNumero').textContent = '------/' + ano;
+        }
+    }
+
+    carregarProximoSO();
+
+    // Data padrão = hoje
+    document.getElementById('datasolicitacao').value = new Date().toISOString().split('T')[0];
+
+    // Contador de caracteres
+    document.getElementById('descricao').addEventListener('input', function() {
+        document.getElementById('descCount').textContent = this.value.length;
+    });
+
+    // ============================================
+    // ENVIAR SOLICITAÇÃO
+    // ============================================
+    document.getElementById('solicitacaoForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnEnviar');
+        btn.disabled = true;
+        btn.innerHTML = \`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg> Enviando...\`;
+
+        const payload = {
+            titulo:        document.getElementById('titulo').value.trim(),
+            cliente_setor: document.getElementById('clienteSetor').value.trim(),
+            data_solicitacao: document.getElementById('datasolicitacao').value || null,
+            descricao:     document.getElementById('descricao').value.trim(),
+        };
+
+        try {
+            const res  = await fetch(API_URL + '/api/solicitacoes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || 'Erro ao enviar');
+
+            document.getElementById('successSO').textContent = data.numero_so;
+            document.getElementById('formScreen').style.display    = 'none';
+            document.getElementById('successScreen').classList.add('visible');
+
+        } catch(err) {
+            document.getElementById('formErrorMsg').textContent = err.message || 'Erro ao enviar. Tente novamente.';
+            document.getElementById('formError').classList.add('visible');
+            setTimeout(() => document.getElementById('formError').classList.remove('visible'), 5000);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = \`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar Solicitação\`;
+        }
+    });
+
+    function novaSolicitacao() {
+        document.getElementById('solicitacaoForm').reset();
+        document.getElementById('descCount').textContent = '0';
+        document.getElementById('datasolicitacao').value = new Date().toISOString().split('T')[0];
+        document.getElementById('successScreen').classList.remove('visible');
+        document.getElementById('formScreen').style.display = 'block';
+        carregarProximoSO();
+    }
+    </script>
+</body>
+</html>

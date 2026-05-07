@@ -33,8 +33,73 @@ window.addEventListener('resize', () => {
     canvas.width  = window.innerWidth;
 });
 
+
+const AppState = {
+    inventory: [],
+    snippets: [],
+    services: [],
+    solicitacoes: [],
+    inventoryActivities: [],
+    servicesActivities: [],
+    settings: { theme: 'dark' },
+    authToken: null
+};
 // ── API BASE (mesmo domínio Railway) ──
-const API_BASE = '';
+const API = {
+    BASE: '',
+
+    headers() {
+        return {
+            'Content-Type': 'application/json',
+            'x-auth-token': AppState.authToken || ''
+        };
+    },
+
+    async get(path) {
+        const res = await fetch(this.BASE + path, { headers: this.headers() });
+        if (!res.ok) throw await res.json();
+        return res.json();
+    },
+
+    async post(path, body) {
+        const res = await fetch(this.BASE + path, {
+            method: 'POST',
+            headers: this.headers(),
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw await res.json();
+        return res.json();
+    },
+
+    async put(path, body) {
+        const res = await fetch(this.BASE + path, {
+            method: 'PUT',
+            headers: this.headers(),
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw await res.json();
+        return res.json();
+    },
+
+    async patch(path, body) {
+        const res = await fetch(this.BASE + path, {
+            method: 'PATCH',
+            headers: this.headers(),
+            body: JSON.stringify(body || {})
+        });
+        if (!res.ok) throw await res.json();
+        return res.json();
+    },
+
+    async delete(path) {
+        const res = await fetch(this.BASE + path, {
+            method: 'DELETE',
+            headers: this.headers()
+        });
+        if (!res.ok) throw await res.json();
+        return res.json();
+    }
+};
 
 // ── TOAST ──
 const Toast = {

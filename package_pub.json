@@ -2,10 +2,10 @@
   "name": "portal-solicitacoes-ti",
   "version": "1.0.0",
   "description": "Portal público de solicitação de serviço — Setor de TI",
-  "main": "server.js",
+  "main": "server_pub.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node server_pub.js",
+    "dev": "nodemon server_pub.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

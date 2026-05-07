@@ -33,9 +33,6 @@ window.addEventListener('resize', () => {
     canvas.width  = window.innerWidth;
 });
 
-// ── API BASE (mesmo domínio Railway) ──
-const API_BASE = '';
-
 // ── TOAST ──
 const Toast = {
     show(message, type = 'info') {
@@ -50,7 +47,7 @@ const Toast = {
         toast.innerHTML = `<div class="toast-icon">${icons[type]}</div><span class="toast-message">${message}</span><button class="toast-close">&times;</button>`;
         container.appendChild(toast);
         toast.querySelector('.toast-close').addEventListener('click', () => removeToast(toast));
-        setTimeout(() => removeToast(toast), 5000);
+        setTimeout(() => removeToast(toast), 6000);
     }
 };
 
@@ -62,12 +59,17 @@ function removeToast(toast) {
 // ── GERAR NÚMERO S.O. ──
 async function gerarNumeroSO() {
     try {
-        const res = await fetch(API_BASE + '/api/solicitacoes/proximo-numero');
-        if (!res.ok) throw new Error();
+        const res = await fetch('/api/solicitacoes/proximo-numero');
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            console.error('Erro ao gerar SO:', err);
+            throw new Error(err.detail || 'Erro no servidor');
+        }
         const data = await res.json();
         return data.numero;
     } catch (e) {
-        // Fallback local: 6 dígitos aleatórios + ano
+        console.warn('Fallback SO local:', e.message);
+        // Fallback local se o servidor não responder
         const ano = new Date().getFullYear();
         const num = String(Math.floor(Math.random() * 999999) + 1).padStart(6, '0');
         return `${num}/${ano}`;
@@ -114,12 +116,10 @@ async function init() {
     // Nova solicitação
     document.getElementById('novaSolBtn').addEventListener('click', async () => {
         document.getElementById('successCard').style.display = 'none';
-        document.getElementById('solicitacaoForm').parentElement.style.display = 'block';
+        document.querySelector('.form-card').style.display = 'block';
         document.getElementById('solicitacaoForm').reset();
         document.getElementById('charCount').textContent = '0';
         document.getElementById('solData').value = dataFormatada;
-
-        // Gerar novo número
         document.getElementById('soDisplay').textContent = 'Gerando...';
         currentSO = await gerarNumeroSO();
         document.getElementById('soDisplay').textContent = currentSO;
@@ -165,40 +165,42 @@ async function handleSubmit(e) {
     const txtNorm = btn.querySelector('.submit-btn__text');
     const txtLoad = btn.querySelector('.submit-btn__loading');
 
-    btn.disabled    = true;
+    btn.disabled          = true;
     txtNorm.style.display = 'none';
     txtLoad.style.display = 'flex';
 
     const payload = {
-        numero_so:    currentSO,
-        titulo:       document.getElementById('solTitulo').value.trim(),
-        cliente_setor: document.getElementById('solSetor').value.trim(),
-        descricao:    document.getElementById('solDescricao').value.trim(),
+        numero_so:       currentSO,
+        titulo:          document.getElementById('solTitulo').value.trim(),
+        cliente_setor:   document.getElementById('solSetor').value.trim(),
+        descricao:       document.getElementById('solDescricao').value.trim(),
         data_solicitacao: new Date().toISOString().split('T')[0]
     };
 
     try {
-        const res = await fetch(API_BASE + '/api/solicitacoes', {
+        const res = await fetch('/api/solicitacoes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
+
         if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error || 'Erro ao enviar');
+            const err = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
+            // Mostra mensagem real do servidor
+            throw new Error(err.detail || err.error || `Erro ${res.status}`);
         }
 
-        // Sucesso
-        document.getElementById('solicitacaoForm').parentElement.querySelector('.form-card').style.display = 'none';
+        // Sucesso — mostra card
+        document.querySelector('.form-card').style.display = 'none';
         const successCard = document.getElementById('successCard');
         successCard.style.display = 'block';
         document.getElementById('successSoDisplay').textContent = currentSO;
 
     } catch (err) {
-        Toast.show('Erro ao enviar solicitação. Tente novamente.', 'error');
-        console.error(err);
+        console.error('Erro ao enviar:', err);
+        Toast.show('Erro: ' + err.message, 'error');
     } finally {
-        btn.disabled    = false;
+        btn.disabled          = false;
         txtNorm.style.display = 'flex';
         txtLoad.style.display = 'none';
     }

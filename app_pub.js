@@ -180,6 +180,8 @@ async function handleSubmit(e) {
     } catch (err) {
         console.error('Erro ao enviar:', err);
         Toast.show('Erro: ' + err.message, 'error');
+        console.error('Payload enviado:', JSON.stringify(payload));
+        console.error('Stack:', err.stack);
     } finally {
         btn.disabled          = false;
         txtNorm.style.display = 'flex';

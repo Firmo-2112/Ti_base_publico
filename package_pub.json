@@ -1,7 +1,7 @@
 {
-  "name": "portal-solicitacoes-ti",
+  "name": "ti-base-publico",
   "version": "1.0.0",
-  "description": "Portal público de solicitação de serviço — Setor de TI",
+  "description": "Portal Público de Solicitações — Setor de TI",
   "main": "server_pub.js",
   "scripts": {
     "start": "node server_pub.js",

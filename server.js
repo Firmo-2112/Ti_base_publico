@@ -1,5 +1,5 @@
 // ==========================================
-// PORTAL PÚBLICO — server_pub.js
+// PORTAL PÚBLICO — server.js
 // Node.js + Express + MySQL (Railway)
 // Repositório SEPARADO do sistema interno
 // ==========================================
@@ -157,7 +157,7 @@ async function runMigrations() {
 
 // ── ARQUIVOS ESTÁTICOS + FALLBACK ──
 app.use(express.static(path.join(__dirname)));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index_pub.html')));
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // ── INICIAR ──
 const PORT = process.env.PORT || 3001;

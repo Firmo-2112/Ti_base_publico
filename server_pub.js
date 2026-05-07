@@ -23,20 +23,44 @@ app.use((req, res, next) => {
     next();
 });
 
-// ── BANCO DE DADOS (mesmo do sistema interno) ──
+// ── BANCO DE DADOS ──
+// IMPORTANTE: certifique-se que as variáveis abaixo estão configuradas
+// em Settings > Variables do serviço Ti_base_publico no Railway.
+// Elas devem ter os MESMOS valores do serviço Ti_base_sede.
+const dbHost     = process.env.MYSQLHOST     || 'mysql.railway.internal';
+const dbPort     = parseInt(process.env.MYSQLPORT) || 3306;
+const dbUser     = process.env.MYSQLUSER     || 'root';
+const dbPassword = process.env.MYSQLPASSWORD || 'OhogquOKFnLPXoQPaHKLyuSVOUUhQZqa';
+const dbName     = process.env.MYSQLDATABASE || 'railway';
+
+console.log('🔌 DB config:', { host: dbHost, port: dbPort, user: dbUser, db: dbName, hasPass: !!dbPassword });
+
 const pool = mysql.createPool({
-    host:             process.env.MYSQLHOST     || 'mysql.railway.internal',
-    port:             parseInt(process.env.MYSQLPORT) || 3306,
-    user:             process.env.MYSQLUSER     || 'root',
-    password:         process.env.MYSQLPASSWORD || '',
-    database:         process.env.MYSQLDATABASE || 'railway',
+    host:             dbHost,
+    port:             dbPort,
+    user:             dbUser,
+    password:         dbPassword,
+    database:         dbName,
     waitForConnections: true,
     connectionLimit:  10,
-    queueLimit:       0
+    queueLimit:       0,
+    connectTimeout:   10000
 });
 
 // ── HEALTHCHECK ──
 app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
+
+// ── DIAGNÓSTICO DE CONEXÃO (remover em produção) ──
+app.get('/api/ping-db', async (req, res) => {
+    try {
+        const conn = await pool.getConnection();
+        const [rows] = await conn.execute('SELECT 1 as ok');
+        conn.release();
+        res.json({ db: 'ok', result: rows[0] });
+    } catch (err) {
+        res.status(500).json({ db: 'erro', message: err.message, code: err.code });
+    }
+});
 
 // ==========================================
 // GERAR PRÓXIMO NÚMERO S.O.
@@ -45,7 +69,6 @@ app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 app.get('/api/solicitacoes/proximo-numero', async (req, res) => {
     try {
         const ano = new Date().getFullYear();
-        // Busca o maior número sequencial do ano atual
         const [rows] = await pool.execute(
             `SELECT numero_so FROM solicitacoes
              WHERE numero_so LIKE ?
@@ -55,7 +78,7 @@ app.get('/api/solicitacoes/proximo-numero', async (req, res) => {
 
         let proximo = 1;
         if (rows.length > 0) {
-            const ultimo = rows[0].numero_so; // ex: "000042/2026"
+            const ultimo = rows[0].numero_so;
             const seq = parseInt(ultimo.split('/')[0]);
             if (!isNaN(seq)) proximo = seq + 1;
         }
@@ -63,8 +86,8 @@ app.get('/api/solicitacoes/proximo-numero', async (req, res) => {
         const numero = String(proximo).padStart(6, '0') + '/' + ano;
         res.json({ numero });
     } catch (err) {
-        console.error('Erro ao gerar número SO:', err);
-        res.status(500).json({ error: 'Erro ao gerar número' });
+        console.error('Erro ao gerar número SO:', err.message);
+        res.status(500).json({ error: 'Erro ao gerar número', detail: err.message });
     }
 });
 
@@ -82,7 +105,6 @@ app.post('/api/solicitacoes', async (req, res) => {
     }
 
     try {
-        // Checar duplicidade de número (race condition)
         const [existe] = await pool.execute(
             'SELECT id FROM solicitacoes WHERE numero_so = ?', [numero_so]
         );
@@ -97,8 +119,8 @@ app.post('/api/solicitacoes', async (req, res) => {
         );
         res.status(201).json({ success: true, numero_so });
     } catch (err) {
-        console.error('Erro ao criar solicitação:', err);
-        res.status(500).json({ error: 'Erro ao registrar solicitação' });
+        console.error('Erro ao criar solicitação:', err.message);
+        res.status(500).json({ error: 'Erro ao registrar solicitação', detail: err.message });
     }
 });
 
@@ -143,10 +165,11 @@ app.listen(PORT, '0.0.0.0', async () => {
     console.log(`🌐 Portal Público rodando na porta ${PORT}`);
     try {
         const conn = await pool.getConnection();
-        console.log('✅ MySQL conectado');
+        console.log('✅ MySQL conectado com sucesso!');
         conn.release();
         await runMigrations();
     } catch (err) {
         console.error('⚠️  MySQL indisponível:', err.message);
+        console.error('   Verifique as variáveis MYSQLHOST, MYSQLPASSWORD, MYSQLDATABASE nas Settings do Railway.');
     }
 });

@@ -93,7 +93,7 @@ app.post('/api/solicitacoes', async (req, res) => {
         await pool.execute(
             `INSERT INTO solicitacoes (numero_so, titulo, cliente_setor, descricao, data_solicitacao, status)
              VALUES (?, ?, ?, ?, ?, 'nova')`,
-            [numero_so, titulo, cliente_setor || '', descricao, data_solicitacao || null]
+            [numero_so, titulo, cliente_setor, descricao, data_solicitacao, null]
         );
         res.status(201).json({ success: true, numero_so });
     } catch (err) {

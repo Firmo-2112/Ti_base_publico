@@ -104,7 +104,7 @@ app.post('/api/solicitacoes', async (req, res) => {
 
 // ── ARQUIVOS ESTÁTICOS + FALLBACK ──
 app.use(express.static(path.join(__dirname)));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index_pub.html')));
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // ── INICIAR ──
 const PORT = process.env.PORT || 3001;

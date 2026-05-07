@@ -2,7 +2,7 @@
   "name": "ti-base-publico",
   "version": "1.0.0",
   "description": "Portal Público de Solicitações — Setor de TI",
-  "main": "server_pub.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"

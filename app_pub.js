@@ -1,37 +1,38 @@
 // ==========================================
 // PORTAL PÚBLICO — app_pub.js
-// Solicitações de Serviço de TI
 // ==========================================
 
 // ── MATRIX BACKGROUND ──
 const canvas = document.getElementById('matrix');
 const ctx = canvas.getContext('2d');
-canvas.height = window.innerHeight;
-canvas.width  = window.innerWidth;
+
+function resizeCanvas() {
+    canvas.height = window.innerHeight;
+    canvas.width  = window.innerWidth;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
 const letters = '01';
 const fontSize = 14;
-const columns = canvas.width / fontSize;
-const drops = [];
-for (let x = 0; x < columns; x++) drops[x] = 1;
 
 function drawMatrix() {
+    const cols = Math.floor(canvas.width / fontSize);
     ctx.fillStyle = 'rgba(0,0,0,0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#00d4ff';
     ctx.font = fontSize + 'px monospace';
+    if (!drawMatrix._drops || drawMatrix._drops.length !== cols) {
+        drawMatrix._drops = Array(cols).fill(1);
+    }
+    const drops = drawMatrix._drops;
     for (let i = 0; i < drops.length; i++) {
-        const text = letters[Math.floor(Math.random() * letters.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        ctx.fillText(letters[Math.floor(Math.random() * 2)], i * fontSize, drops[i] * fontSize);
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
     }
 }
 setInterval(drawMatrix, 33);
-
-window.addEventListener('resize', () => {
-    canvas.height = window.innerHeight;
-    canvas.width  = window.innerWidth;
-});
 
 // ── TOAST ──
 const Toast = {
@@ -56,38 +57,28 @@ function removeToast(toast) {
     setTimeout(() => toast.remove(), 300);
 }
 
-// ── GERAR NÚMERO S.O. ──
-async function gerarNumeroSO() {
-    try {
-        const res = await fetch('/api/solicitacoes/proximo-numero');
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            console.error('Erro ao gerar SO:', err);
-            throw new Error(err.detail || 'Erro no servidor');
-        }
-        const data = await res.json();
-        return data.numero;
-    } catch (e) {
-        console.warn('Fallback SO local:', e.message);
-        // Fallback local se o servidor não responder
-        const ano = new Date().getFullYear();
-        const num = String(Math.floor(Math.random() * 999999) + 1).padStart(6, '0');
-        return `${num}/${ano}`;
-    }
+// ── GERAR NÚMERO S.O. LOCAL (não depende de API) ──
+// Gera sequência baseada em timestamp para garantir unicidade
+function gerarNumeroSOLocal() {
+    const ano = new Date().getFullYear();
+    const ts  = Date.now(); // timestamp ms — único por definição
+    // Pega os últimos 6 dígitos do timestamp para o número sequencial
+    const seq = String(ts).slice(-6);
+    return `${seq}/${ano}`;
 }
 
-// ── INIT ──
+// ── ESTADO GLOBAL ──
 let currentSO = '';
+const hoje = new Date();
+const dataFormatada = hoje.toLocaleDateString('pt-BR');
 
-async function init() {
+// ── INIT ──
+function init() {
     // Data de hoje
-    const hoje = new Date();
-    const dataFormatada = hoje.toLocaleDateString('pt-BR');
     document.getElementById('solData').value = dataFormatada;
 
-    // Gerar número SO
-    document.getElementById('soDisplay').textContent = 'Gerando...';
-    currentSO = await gerarNumeroSO();
+    // Gerar número SO localmente — sem depender da API
+    currentSO = gerarNumeroSOLocal();
     document.getElementById('soDisplay').textContent = currentSO;
 
     // Contador de caracteres
@@ -101,55 +92,45 @@ async function init() {
     });
 
     // Limpar erros ao digitar
-    document.getElementById('solTitulo').addEventListener('input', () => {
-        document.getElementById('solTitulo').classList.remove('invalid');
-        document.getElementById('errTitulo').classList.remove('visible');
-    });
-    document.getElementById('solSetor').addEventListener('input', () => {
-        document.getElementById('solSetor').classList.remove('invalid');
-        document.getElementById('errSetor').classList.remove('visible');
+    ['solTitulo', 'solSetor'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+            document.getElementById(id).classList.remove('invalid');
+            const errId = id === 'solTitulo' ? 'errTitulo' : 'errSetor';
+            document.getElementById(errId).classList.remove('visible');
+        });
     });
 
     // Submit
     document.getElementById('solicitacaoForm').addEventListener('submit', handleSubmit);
 
     // Nova solicitação
-    document.getElementById('novaSolBtn').addEventListener('click', async () => {
+    document.getElementById('novaSolBtn').addEventListener('click', () => {
         document.getElementById('successCard').style.display = 'none';
-        document.querySelector('.form-card').style.display = 'block';
+        document.querySelector('.form-card').style.display   = 'block';
         document.getElementById('solicitacaoForm').reset();
-        document.getElementById('charCount').textContent = '0';
-        document.getElementById('solData').value = dataFormatada;
-        document.getElementById('soDisplay').textContent = 'Gerando...';
-        currentSO = await gerarNumeroSO();
-        document.getElementById('soDisplay').textContent = currentSO;
+        document.getElementById('charCount').textContent     = '0';
+        document.getElementById('solData').value             = dataFormatada;
+        currentSO = gerarNumeroSOLocal();
+        document.getElementById('soDisplay').textContent     = currentSO;
     });
 }
 
 // ── VALIDAÇÃO ──
 function validateForm() {
     let valid = true;
-
-    const titulo = document.getElementById('solTitulo');
-    const setor  = document.getElementById('solSetor');
-    const desc   = document.getElementById('solDescricao');
-
-    if (!titulo.value.trim()) {
-        titulo.classList.add('invalid');
-        document.getElementById('errTitulo').classList.add('visible');
-        valid = false;
-    }
-    if (!setor.value.trim()) {
-        setor.classList.add('invalid');
-        document.getElementById('errSetor').classList.add('visible');
-        valid = false;
-    }
-    if (!desc.value.trim()) {
-        desc.classList.add('invalid');
-        document.getElementById('errDescricao').classList.add('visible');
-        valid = false;
-    }
-
+    const fields = [
+        { id: 'solTitulo',    errId: 'errTitulo' },
+        { id: 'solSetor',     errId: 'errSetor' },
+        { id: 'solDescricao', errId: 'errDescricao' }
+    ];
+    fields.forEach(({ id, errId }) => {
+        const el = document.getElementById(id);
+        if (!el.value.trim()) {
+            el.classList.add('invalid');
+            document.getElementById(errId).classList.add('visible');
+            valid = false;
+        }
+    });
     return valid;
 }
 
@@ -170,30 +151,30 @@ async function handleSubmit(e) {
     txtLoad.style.display = 'flex';
 
     const payload = {
-        numero_so:       currentSO,
-        titulo:          document.getElementById('solTitulo').value.trim(),
-        cliente_setor:   document.getElementById('solSetor').value.trim(),
-        descricao:       document.getElementById('solDescricao').value.trim(),
-        data_solicitacao: new Date().toISOString().split('T')[0]
+        numero_so:        currentSO,
+        titulo:           document.getElementById('solTitulo').value.trim(),
+        cliente_setor:    document.getElementById('solSetor').value.trim(),
+        descricao:        document.getElementById('solDescricao').value.trim(),
+        data_solicitacao: hoje.toISOString().split('T')[0]
     };
 
     try {
         const res = await fetch('/api/solicitacoes', {
-            method: 'POST',
+            method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body:    JSON.stringify(payload)
         });
 
+        let data = {};
+        try { data = await res.json(); } catch(_) {}
+
         if (!res.ok) {
-            const err = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
-            // Mostra mensagem real do servidor
-            throw new Error(err.detail || err.error || `Erro ${res.status}`);
+            throw new Error(data.detail || data.error || `Erro ${res.status}`);
         }
 
-        // Sucesso — mostra card
-        document.querySelector('.form-card').style.display = 'none';
-        const successCard = document.getElementById('successCard');
-        successCard.style.display = 'block';
+        // ── SUCESSO ──
+        document.querySelector('.form-card').style.display  = 'none';
+        document.getElementById('successCard').style.display = 'block';
         document.getElementById('successSoDisplay').textContent = currentSO;
 
     } catch (err) {

@@ -247,6 +247,7 @@ body::after {
     color: var(--text-secondary);
     max-width: 920px;
     line-height: 1.7;
+    margin-top: 50px;
     animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.3s both;
 }
 

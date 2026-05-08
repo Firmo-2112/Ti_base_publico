@@ -57,7 +57,7 @@ function removeToast(toast) {
     setTimeout(() => toast.remove(), 300);
 }
 
-// ── GERAR NÚMERO S.O. LOCAL (não depende de API) ──
+// ── GERAR NÚMERO O.S. LOCAL (não depende de API) ──
 // Gera sequência baseada em timestamp para garantir unicidade
 function gerarNumeroSOLocal() {
     const ano = new Date().getFullYear();

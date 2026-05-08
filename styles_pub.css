@@ -226,6 +226,7 @@ body::after {
 }
 
 .hero-title {
+    text-align: center;
     font-family: 'Oxanium', sans-serif;
     font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 800;

@@ -9,6 +9,8 @@
 </head>
 <body>
 
+<canvas id="matrix"></canvas>
+
 <div class="portal-wrapper">
 
     <!-- HEADER -->
@@ -41,16 +43,31 @@
         <section class="hero-section">
             <div class="hero-grid-bg"></div>
             <div class="hero-content">
-                <h1 class="hero-title">Solicite Suporte <span class="hero-highlight">de TI</span></h1>
+                <div class="hero-tag">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    Abertura de Chamado
+                </div>
+                <h1 class="hero-title">Solicite Suporte<br><span class="hero-highlight">de TI</span></h1>
+                <p class="hero-desc">Preencha o formulário abaixo para registrar sua solicitação. Nossa equipe irá analisar e entrar em contato em breve.</p>
             </div>
         </section>
 
         <!-- FORM SECTION -->
         <section class="form-section">
-            <p class="hero-desc">Preencha o formulário abaixo para registrar sua solicitação. Nossa equipe irá analisar e entrar em contato em breve.</p>
             <div class="form-card">
                 <div class="form-card-header">
+                    <div class="form-step-indicator">
+                        <span class="step active">01</span>
+                        <span class="step-line"></span>
+                        <span class="step">02</span>
+                        <span class="step-line"></span>
+                        <span class="step">03</span>
+                    </div>
                     <h2>Nova Solicitação</h2>
+                    <p>Todos os campos marcados com <span class="req-mark">*</span> são obrigatórios</p>
                 </div>
 
                 <form id="solicitacaoForm" class="sol-form" novalidate>
@@ -177,6 +194,38 @@
                     </svg>
                     Nova Solicitação
                 </button>
+            </div>
+        </section>
+
+        <!-- INFO CARDS -->
+        <section class="info-section">
+            <div class="info-card">
+                <div class="info-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <h3>Tempo de Resposta</h3>
+                <p>Chamados urgentes são atendidos em até 2h. Demais solicitações em até 24h úteis.</p>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                </div>
+                <h3>Suporte Presencial</h3>
+                <p>Para emergências, entre em contato diretamente com o Setor de TI na Prefeitura.</p>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <h3>Dados Seguros</h3>
+                <p>Suas informações são tratadas com sigilo e utilizadas apenas para gestão do chamado.</p>
             </div>
         </section>
 

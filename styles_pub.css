@@ -243,6 +243,7 @@ body::after {
 }
 
 .hero-desc {
+    text-align: center;
     font-size: 1rem;
     color: var(--text-secondary);
     max-width: 920px;

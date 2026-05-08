@@ -286,6 +286,8 @@ body::after {
 }
 
 .form-card-header {
+    text-align: center;
+    font-size: clamp(2rem, 5vw, 3rem);
     padding: 2rem 2rem 1.5rem;
     border-bottom: 1px solid var(--border-subtle);
     background: linear-gradient(180deg, rgba(0,212,255,0.04) 0%, transparent 100%);

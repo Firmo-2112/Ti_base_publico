@@ -2,37 +2,6 @@
 // PORTAL PÚBLICO — app_pub.js
 // ==========================================
 
-// ── MATRIX BACKGROUND ──
-const canvas = document.getElementById('matrix');
-const ctx = canvas.getContext('2d');
-
-function resizeCanvas() {
-    canvas.height = window.innerHeight;
-    canvas.width  = window.innerWidth;
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
-const letters = '01';
-const fontSize = 14;
-
-function drawMatrix() {
-    const cols = Math.floor(canvas.width / fontSize);
-    ctx.fillStyle = 'rgba(0,0,0,0.05)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#00d4ff';
-    ctx.font = fontSize + 'px monospace';
-    if (!drawMatrix._drops || drawMatrix._drops.length !== cols) {
-        drawMatrix._drops = Array(cols).fill(1);
-    }
-    const drops = drawMatrix._drops;
-    for (let i = 0; i < drops.length; i++) {
-        ctx.fillText(letters[Math.floor(Math.random() * 2)], i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-        drops[i]++;
-    }
-}
-setInterval(drawMatrix, 33);
 
 // ── TOAST ──
 const Toast = {

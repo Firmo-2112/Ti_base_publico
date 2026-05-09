@@ -55,13 +55,7 @@ body {
 }
 
 /* ── CANVAS MATRIX ── */
-#matrix {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    opacity: 0.55;
-    pointer-events: none;
-}
+#matrix { display: none; }
 
 /* ── SCANLINES OVERLAY ── */
 body::after {
@@ -226,7 +220,6 @@ body::after {
 }
 
 .hero-title {
-    text-align: center;
     font-family: 'Oxanium', sans-serif;
     font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 800;
@@ -243,10 +236,9 @@ body::after {
 }
 
 .hero-desc {
-    text-align: center;
     font-size: 1rem;
     color: var(--text-secondary);
-    max-width: 920px;
+    max-width: 520px;
     line-height: 1.7;
     animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.3s both;
 }
@@ -286,8 +278,6 @@ body::after {
 }
 
 .form-card-header {
-    text-align: center;
-    font-size: clamp(2rem, 5vw, 3rem);
     padding: 2rem 2rem 1.5rem;
     border-bottom: 1px solid var(--border-subtle);
     background: linear-gradient(180deg, rgba(0,212,255,0.04) 0%, transparent 100%);
@@ -796,3 +786,15 @@ body::after {
     .toast-container { left: 1rem; right: 1rem; bottom: 1rem; }
     .toast { min-width: auto; max-width: none; }
 }
+
+
+/* ── REMOVIDOS POR CONFIGURAÇÃO ── */
+.hero-section        { display: none !important; }
+.form-step-indicator { display: none !important; }
+.info-section        { display: none !important; }
+#matrix              { display: none !important; }
+
+/* ── PORTAL LIMPO — ajustes de espaçamento ── */
+.portal-main { padding-top: 1.5rem; }
+.form-section { margin-bottom: 1.5rem; }
+.form-card-header { padding-bottom: 1rem; }
